@@ -1,0 +1,252 @@
+#include<iostream>
+#include<vector>
+#include<string>
+#include<fstream>
+#include<iomanip>
+using namespace std;
+
+class person
+{
+private:
+    string name;
+public:
+    person()
+    {
+        name=" ";
+    }
+    void setname(string n)
+    {
+        name=n;
+    }
+    string getname()
+    {
+        return name;
+    }
+
+    virtual void displayinfo()=0;
+};
+class student:public person
+{
+private:
+    string id;
+    double grades[3];
+public:
+    student()
+    {
+        id=" ";
+        for(int i=0; i<3; i++)
+        {
+            grades[i]=0.0;
+        }
+    }
+    student(string n,string i,double g[])
+    {
+        setname(n);
+        id=i;
+        for (int j=0; j<3; j++)
+        {
+            grades[j]=g[j];
+        }
+    }
+
+    void setid(string i)
+    {
+        id = i;
+    }
+    void setgrades(double g[])
+    {
+        for (int i = 0; i < 3; i++) grades[i]=g[i];
+    }
+    string getid()
+    {
+        return id;
+    }
+
+    double getaverage()
+    {
+        double sum=0;
+        for(int i=0; i<3; i++)
+        {
+            sum+=grades[i];
+        }
+        return sum/3.0;
+    }
+
+
+    void displayinfo()
+    {
+        cout<<"Name: "<<getname()<<endl;
+        cout<<"ID: " <<id<<endl;
+        cout<<"Grades: ";
+        for(int i=0; i<3; i++)
+        {
+            cout<<grades[i]<<" ";
+        }
+        cout<< endl;
+        cout<<"Average: "<<fixed<<setprecision(2)<<getaverage()<< endl;
+        cout<<"----------------------------------"<< endl;
+    }
+
+
+    string getdatastring()
+    {
+        string data="";
+        data+=getname()+" "+id+" ";
+        for (int i=0; i<3; i++)
+        {
+            data+=to_string(grades[i])+" ";
+        }
+        return data;
+    }
+};
+
+
+vector<student> database;
+
+void loadDataFromFile()
+{
+    ifstream inFile("students.txt");
+    if (inFile.is_open())
+    {
+        string name, id;
+        double g1, g2, g3;
+
+
+        while (inFile >> name >> id >> g1 >> g2 >> g3)
+        {
+            double grades[] = {g1, g2, g3};
+            student s(name, id, grades);
+            database.push_back(s);
+        }
+        inFile.close();
+        cout << "[System] Data loaded successfully from file." << endl;
+    }
+    else
+    {
+
+        cout << "[System] No existing file found. Starting a new database." << endl;
+    }
+}
+
+void saveDataToFile()
+{
+    ofstream outFile("students.txt");
+    if (outFile.is_open())
+    {
+        for (int i = 0; i < database.size(); i++)
+        {
+            outFile << database[i].getdatastring() << endl;
+        }
+        outFile.close();
+        cout << "[System] Data saved to file." << endl;
+    }
+}
+
+
+void showpolymorphism(person*p)
+{
+    p->displayinfo();
+}
+
+
+void addstudent()
+{
+    string name,id ;
+    double grades[3] ;
+
+    cout<<"Enter Name: ";
+    cin>> name;
+    cout<< "Enter ID: ";
+    cin>> id;
+    cout<< "Enter grades for 3 subjects (separated by space): ";
+    for(int i=0; i<3; i++)
+    {
+        cin>>grades[i];
+    }
+
+    student s;
+    s.setname(name);
+    s.setid(id);
+    s.setgrades(grades);
+
+    database.push_back(s);
+    cout << "Student added successfully!" << endl;
+}
+
+void displayall()
+{
+    if (database.empty())
+    {
+        cout << "No records found." << endl;
+        return;
+    }
+
+    cout << "\n--- All Student Records ---" << endl;
+    for (int i= 0; i <database.size(); i++)
+    {
+        showpolymorphism(&database[i]);
+    }
+}
+
+void searchstudent()
+{
+    string searchid;
+    bool found=false;
+
+    cout << "Enter Student ID to search: ";
+    cin >> searchid;
+
+    for (int i = 0; i < database.size(); i++)
+    {
+        if (database[i].getid() == searchid)
+        {
+            cout << "\n--- Student Found ---" << endl;
+            showpolymorphism(&database[i]);
+            found=true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        cout<<"Student with ID "<<searchid<<" not found."<<endl;
+    }
+}
+
+int main()
+{
+
+    loadDataFromFile();
+
+    int choice;
+    while (true)
+    {
+        cout<< "\n=== Student Management System ==="<<endl;
+        cout<< "1. Add Student"<<endl;
+        cout<< "2. Display All Students"<<endl;
+        cout<<  "3. Search Student by ID"<<endl;
+        cout<<  "4. Exit"<<endl;
+        cout<<  "Enter your choice: ";
+        cin>> choice;
+
+        switch (choice)
+        {
+        case 1:
+            addstudent();
+            break;
+        case 2:
+            displayall();
+            break;
+        case 3:
+            searchstudent();
+            break;
+        case 4:
+            saveDataToFile();
+            cout<<"Exiting program. Goodbye!"<<endl;
+            return 0;
+        default:
+            cout<<"Invalid choice. Please try again."<<endl;
+        }
+    }
+
+}
